@@ -1,9 +1,11 @@
-package com.mybank.gui;
+package domain;
 
 import com.mybank.domain.Bank;
 import com.mybank.domain.CheckingAccount;
 import com.mybank.domain.Customer;
 import com.mybank.domain.SavingsAccount;
+import com.mybank.data.DataSource;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -14,6 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import java.io.IOException;
 
 /**
  *
@@ -23,12 +26,14 @@ public class SWINGDemo {
     
     private final JEditorPane log;
     private final JButton show;
+    private final JButton report;
     private final JComboBox clients;
     
     public SWINGDemo() {
         log = new JEditorPane("text/html", "");
-        log.setPreferredSize(new Dimension(250, 150));
+        log.setPreferredSize(new Dimension(500, 500));
         show = new JButton("Show");
+        report = new JButton("Report");
         clients = new JComboBox();
         for (int i=0; i<Bank.getNumberOfCustomers();i++)
         {
@@ -45,6 +50,7 @@ public class SWINGDemo {
         
         cpane.add(clients);
         cpane.add(show);
+        cpane.add(report);
         frame.add(cpane, BorderLayout.NORTH);
         frame.add(log, BorderLayout.CENTER);
         
@@ -60,6 +66,16 @@ public class SWINGDemo {
                 log.setText(custInfo);                
             }
         });
+        report.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CustomerReportHtml reportHtml = new CustomerReportHtml();
+                String htmlReport = reportHtml.generateHtmlReport();               
+                String custInfo = htmlReport;
+                log.setText(custInfo);                
+            }
+        });
+
         
         frame.pack();
         frame.setLocationRelativeTo(null);
@@ -69,14 +85,14 @@ public class SWINGDemo {
     }
     
     public static void main(String[] args) {
-        
-        Bank.addCustomer("John", "Doe");
-        Bank.addCustomer("Fox", "Mulder");
-        Bank.addCustomer("Dana", "Scully");
-        Bank.getCustomer(0).addAccount(new CheckingAccount(2000));
-        Bank.getCustomer(1).addAccount(new SavingsAccount(1000, 3));
-        Bank.getCustomer(2).addAccount(new CheckingAccount(1000, 500));
-        
+        try {
+            DataSource dataSource = new DataSource("data/test.dat");
+            dataSource.loadData();
+        } catch (IOException e) {
+            System.err.println("Error loading data: " + e.getMessage());
+            return;
+        }
+
         SWINGDemo demo = new SWINGDemo();        
         demo.launchFrame();
     }
